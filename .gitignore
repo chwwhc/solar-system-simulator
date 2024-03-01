@@ -1,0 +1,14 @@
+# Dependency directories
+node_modules/
+
+# TypeScript compiled JavaScript
+dist/
+
+# TypeScript declaration files
+*.d.ts
+
+# Source maps
+*.map
+
+# Environment files
+.env
