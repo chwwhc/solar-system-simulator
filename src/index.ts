@@ -1,9 +1,9 @@
-import { updateCameraAspect } from './camera';
+import { updateCameraAspect, getCameraFront, getCameraPosition, getCameraUp } from './camera';
 import { MeshID, ShaderID, TextureID, addMesh, addShader, addTexture } from './resourceManager';
 import { createSphere } from './mesh';
 import { EntityID, createEntity, entityGetComponent } from './entity';
 import { ComponentType, TransformComponent, createRenderComponent, createTransformComponent } from './component';
-import { renderSystem } from './systems';
+import { inputSystem, renderSystem } from './systems';
 
 const canvasID: string = 'webglCanvas';
 const canvas: HTMLCanvasElement | null = document.getElementById(canvasID) as HTMLCanvasElement;
@@ -29,7 +29,8 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const updateFPS = (time: number): [number, number] => {
+    const updateDisplayInfo = (time: number): [number, number] => {
+        // update fps
         const currTime: number = performance.now();
         const delta: number = currTime - time;
         const fpsValue: number = Math.floor(1000 / delta);
@@ -37,6 +38,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (fps !== null) {
             fps.textContent = `FPS: ${fpsValue}`;
         }
+
+        // update camera info
+        const cameraPos = getCameraPosition();
+        const cameraFront = getCameraFront();
+        const cameraUp = getCameraUp();
+
+        document.getElementById('cameraPosition').innerText = `Camera Position Vector: ${cameraPos[0].toFixed(2)}, ${cameraPos[1].toFixed(2)}, ${cameraPos[2].toFixed(2)}`;
+        document.getElementById('cameraFront').innerText = `Camera Front Vector: ${cameraFront[0].toFixed(2)}, ${cameraFront[1].toFixed(2)}, ${cameraFront[2].toFixed(2)}`;
+        document.getElementById('cameraUp').innerText = `Camera Up Vector: ${cameraUp[0].toFixed(2)}, ${cameraUp[1].toFixed(2)}, ${cameraUp[2].toFixed(2)}`;
 
         return [currTime, delta];
     }
@@ -67,29 +77,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     const earthTextureID: TextureID = await addTexture(gl, earthTextureUrl);
 
     // load and setup sphere
-    const sphereMeshID: MeshID = addMesh(createSphere(5, 20, 20));
+    const sphereMeshID: MeshID = addMesh(createSphere(1, 20, 20));
     const sphereEntity: EntityID = createEntity([createRenderComponent(sphereMeshID, earthTextureID, planetShaderID), createTransformComponent({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1 })]);
     entities.push(sphereEntity);
 
     // setup systems
-    const systems = [renderSystem];
+    const systems = [inputSystem, renderSystem];
 
     let lastTime = performance.now();
     function render(time: number) {
         time *= 0.001; // Convert time to seconds
-        const updateFPSResult: [number, number] = updateFPS(lastTime);
+        const updateFPSResult: [number, number] = updateDisplayInfo(lastTime);
         lastTime = updateFPSResult[0];
         const deltaTime: number = updateFPSResult[1];
 
-        const rotationSpeed = 0.5; 
+        const rotationSpeed = 0.5;
         const rotationAngle = time * rotationSpeed;
 
         (entityGetComponent(sphereEntity, ComponentType.Transform) as TransformComponent).rotation = { x: 0, y: rotationAngle, z: 0 };
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0); 
-        gl.clearDepth(1.0); 
-        gl.enable(gl.DEPTH_TEST); 
-        gl.depthFunc(gl.LEQUAL); 
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearDepth(1.0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         systems.forEach((system) => {

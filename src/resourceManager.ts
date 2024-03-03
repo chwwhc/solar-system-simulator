@@ -2,7 +2,7 @@ import { Mesh } from "./mesh";
 
 const meshCache: Mesh[] = [];
 const textureCache: WebGLTexture[] = [];
-const shaderCache: WebGLProgram[] = [];
+const shaderCache: [WebGLProgram, { [key: string]: WebGLUniformLocation }][] = [];
 
 export const modelMatName: string = 'uModelMat';
 export const viewMatName: string = 'uViewMat';
@@ -87,7 +87,14 @@ export const addShader = (gl: WebGL2RenderingContext, vertexShaderSource: string
         throw new Error('Shader program linking failed: ' + gl.getProgramInfoLog(shaderProgram));
     }
 
-    shaderCache.push(shaderProgram);
+    // retrieve uniform locations
+    const uniformCache: { [key: string]: WebGLUniformLocation } = {};
+    uniformCache[modelMatName] = gl.getUniformLocation(shaderProgram, modelMatName);
+    uniformCache[viewMatName] = gl.getUniformLocation(shaderProgram, viewMatName);
+    uniformCache[projMatName] = gl.getUniformLocation(shaderProgram, projMatName);
+    uniformCache[textureName] = gl.getUniformLocation(shaderProgram, textureName);
+
+    shaderCache.push([shaderProgram, uniformCache]);
     return shaderCache.length - 1;
 }
 
@@ -108,9 +115,17 @@ export const getTexture = (id: TextureID): WebGLTexture => {
 }
 
 export const getShader = (id: ShaderID): WebGLProgram => {
-    const shader = shaderCache[id];
+    const shader = shaderCache[id][0];
     if (shader === undefined) {
         throw new Error(`Shader with id ${id} not found`);
     }
     return shader;
-}
+};
+
+export const getUniformLocation = (shaderID: ShaderID, name: string): WebGLUniformLocation => {
+    const uniform = shaderCache[shaderID][1][name];
+    if (uniform === undefined) {
+        throw new Error(`Uniform ${name} not found in shader with id ${shaderID}`);
+    }
+    return uniform;
+};

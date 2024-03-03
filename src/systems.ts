@@ -1,11 +1,23 @@
 import { EntityID, entityGetComponent, entityHasComponent } from './entity';
 import { ComponentType, RenderComponent, TransformComponent } from './component';
-import { getViewMatrix, getProjectionMatrix } from './camera';
-import { mat4, vec3 } from 'gl-matrix';
-import { getMesh, getShader, modelMatName, viewMatName, projMatName, getTexture, textureName } from './resourceManager';
+import { getViewMatrix, getProjectionMatrix, getCameraFront, getCameraUp, getCameraPosition } from './camera';
+import { mat4, vec3, quat } from 'gl-matrix';
+import { getMesh, getShader, modelMatName, viewMatName, projMatName, getTexture, textureName, getUniformLocation, ShaderID } from './resourceManager';
+
+// listener for input system
+const currentKeys: Set<string> = new Set();
+window.addEventListener('keydown', (event: KeyboardEvent) => {
+    currentKeys.add(event.key);
+});
+window.addEventListener('keyup', (event: KeyboardEvent) => {
+    currentKeys.delete(event.key);
+});
+const isKeyPressed = (key: string): boolean => {
+    return currentKeys.has(key);
+};
 
 export interface System {
-    update: (entites: EntityID[], deltaTime: number, gl?: WebGL2RenderingContext) => void;
+    update: (entites: EntityID[], deltaTime: number, gl?: WebGL2RenderingContext) => void
 }
 
 export const renderSystem: System = {
@@ -72,7 +84,8 @@ export const renderSystem: System = {
             if (entityHasComponent(entity, ComponentType.Render)) {
                 const renderComponent: RenderComponent = entityGetComponent(entity, ComponentType.Render) as RenderComponent;
 
-                const shaderProgram = getShader(renderComponent.shaderID);
+                const shaderID: ShaderID = renderComponent.shaderID;
+                const shaderProgram = getShader(shaderID);
                 gl.useProgram(shaderProgram);
 
                 const mesh = getMesh(renderComponent.meshID);
@@ -87,22 +100,86 @@ export const renderSystem: System = {
                     mat4.rotateY(modelMat, modelMat, transformComponent.rotation.y);
                     mat4.rotateZ(modelMat, modelMat, transformComponent.rotation.z);
                     mat4.scale(modelMat, modelMat, vec3.fromValues(transformComponent.scale.x, transformComponent.scale.y, transformComponent.scale.z));
-                    gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, modelMatName), false, modelMat);
+                    gl.uniformMatrix4fv(getUniformLocation(shaderID, modelMatName), false, modelMat);
                 } else {
-                    gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, modelMatName), false, mat4.create());
+                    gl.uniformMatrix4fv(getUniformLocation(shaderID, modelMatName), false, mat4.create());
                 }
 
-                gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, viewMatName), false, viewMat);
-                gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, projMatName), false, projMat);
+                gl.uniformMatrix4fv(getUniformLocation(shaderID, viewMatName), false, viewMat);
+                gl.uniformMatrix4fv(getUniformLocation(shaderID, projMatName), false, projMat);
 
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, getTexture(renderComponent.textureID));
-                gl.uniform1i(gl.getUniformLocation(shaderProgram, textureName), 0);
+                gl.uniform1i(getUniformLocation(shaderID, textureName), 0);
 
-                const vao: WebGLVertexArrayObject = generateVAO(vertices, normals, texCoords, indices);
-                gl.bindVertexArray(vao);
+                if (renderComponent.vao === null) {
+                    renderComponent.vao = generateVAO(vertices, normals, texCoords, indices);
+                }
+
+                gl.bindVertexArray(renderComponent.vao);
                 gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
             }
         });
+    }
+};
+
+export const inputSystem: System = {
+    update: (entities: EntityID[], deltaTime: number, gl: WebGL2RenderingContext): void => {
+        const cameraSpeed: number = 0.01 * deltaTime;
+        const cameraRotationSpeed: number = 0.001 * deltaTime;
+        const cameraPos: vec3 = getCameraPosition();
+        const cameraFront: vec3 = getCameraFront();
+        const cameraUp: vec3 = getCameraUp();
+
+        vec3.normalize(cameraFront, cameraFront);
+        vec3.normalize(cameraUp, cameraUp);
+
+        const rotateVec3 = (vec: vec3, axis: vec3, angle: number): void => {
+            const quaternion: quat = quat.create();
+            quat.setAxisAngle(quaternion, axis, angle);
+            const rotatedVec: vec3 = vec3.create();
+            vec3.transformQuat(rotatedVec, vec, quaternion);
+            vec3.copy(vec, rotatedVec);
+        }
+
+        // Movement (Zoom In/Out)
+        if (isKeyPressed('w')) {
+            vec3.scaleAndAdd(cameraPos, cameraPos, cameraFront, cameraSpeed); // Zoom in
+        }
+        if (isKeyPressed('s')) {
+            vec3.scaleAndAdd(cameraPos, cameraPos, cameraFront, -cameraSpeed); // Zoom out
+        }
+
+        // Yaw (A/D)
+        if (isKeyPressed('a')) {
+            rotateVec3(cameraFront, cameraUp, cameraRotationSpeed); // Yaw left
+        }
+        if (isKeyPressed('d')) {
+            rotateVec3(cameraFront, cameraUp, -cameraRotationSpeed); // Yaw right
+        }
+
+        // Pitch (Arrow Up/Down)
+        if (isKeyPressed('ArrowUp')) {
+            let right = vec3.create();
+            vec3.cross(right, cameraFront, cameraUp);
+            vec3.normalize(right, right);
+            rotateVec3(cameraFront, right, cameraRotationSpeed); // Pitch up
+            rotateVec3(cameraUp, right, cameraRotationSpeed);
+        }
+        if (isKeyPressed('ArrowDown')) {
+            let right = vec3.create();
+            vec3.cross(right, cameraFront, cameraUp);
+            vec3.normalize(right, right);
+            rotateVec3(cameraFront, right, -cameraRotationSpeed); // Pitch down
+            rotateVec3(cameraUp, right, -cameraRotationSpeed);
+        }
+
+        // Roll (Arrow Left/Right)
+        if (isKeyPressed('ArrowLeft')) {
+            rotateVec3(cameraUp, cameraFront, cameraRotationSpeed); // Roll left
+        }
+        if (isKeyPressed('ArrowRight')) {
+            rotateVec3(cameraUp, cameraFront, -cameraRotationSpeed); // Roll right
+        }
     }
 };

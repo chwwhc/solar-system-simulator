@@ -11,6 +11,7 @@ export type RenderComponent = {
     meshID: MeshID,
     textureID: TextureID,
     shaderID: ShaderID,
+    vao: WebGLVertexArrayObject | null,
 }
 
 export type TransformComponent = {
@@ -34,6 +35,7 @@ export const createRenderComponent = (meshID: MeshID, textureID: TextureID, shad
         meshID,
         textureID,
         shaderID,
+        vao: null,
     };
 };
 

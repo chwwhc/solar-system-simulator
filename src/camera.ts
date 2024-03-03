@@ -11,18 +11,6 @@ const cameraState = {
     far: 100,
 };
 
-export const updateCameraPosition = (x: number, y: number, z: number): void => {
-    cameraState.position = vec3.fromValues(x, y, z);
-};
-
-export const updateCameraFront = (x: number, y: number, z: number): void => {
-    cameraState.front = vec3.fromValues(x, y, z);
-};
-
-export const updateCameraUp = (x: number, y: number, z: number): void => {
-    cameraState.up = vec3.fromValues(x, y, z);
-};
-
 export const updateCameraFOV = (fov: number): void => {
     cameraState.fov = fov;
 };
@@ -38,6 +26,18 @@ export const updateCameraNear = (near: number): void => {
 export const updateCameraFar = (far: number): void => {
     cameraState.far = far;
 };
+
+export const getCameraPosition = (): vec3 => {
+    return cameraState.position;
+}
+
+export const getCameraFront = (): vec3 => {
+    return cameraState.front;
+}
+
+export const getCameraUp = (): vec3 => {
+    return cameraState.up;
+}
 
 export const getViewMatrix = (): mat4 => {
     const posPlusFront = vec3.create();
