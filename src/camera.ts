@@ -2,13 +2,13 @@
 import { mat4, vec3 } from 'gl-matrix';
 
 const cameraState = {
-    position: vec3.fromValues(0, 0, 12),
-    front: vec3.fromValues(0, 0, -1),
+    position: vec3.fromValues(60, 0, 100),
+    front: vec3.fromValues(0.3, 0, -0.9),
     up: vec3.fromValues(0, 1, 0),
     fov: Math.PI / 3,
     aspect: window.innerWidth / window.innerHeight,
     near: 0.1,
-    far: 100,
+    far: 1000,
 };
 
 export const updateCameraFOV = (fov: number): void => {

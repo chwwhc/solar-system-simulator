@@ -1,5 +1,5 @@
 import { EntityID, entityGetComponent, entityHasComponent } from './entity';
-import { ComponentType, RenderComponent, TransformComponent } from './component';
+import { ComponentType, RenderComponent, TransformComponent, RotationComponent } from './component';
 import { getViewMatrix, getProjectionMatrix, getCameraFront, getCameraUp, getCameraPosition } from './camera';
 import { mat4, vec3, quat } from 'gl-matrix';
 import { getMesh, getShader, modelMatName, viewMatName, projMatName, getTexture, textureName, getUniformLocation, ShaderID } from './resourceManager';
@@ -95,11 +95,11 @@ export const renderSystem: System = {
                     const transformComponent: TransformComponent = entityGetComponent(entity, ComponentType.Transform) as TransformComponent;
 
                     const modelMat: mat4 = mat4.create();
-                    mat4.translate(modelMat, modelMat, vec3.fromValues(transformComponent.position.x, transformComponent.position.y, transformComponent.position.z));
-                    mat4.rotateX(modelMat, modelMat, transformComponent.rotation.x);
-                    mat4.rotateY(modelMat, modelMat, transformComponent.rotation.y);
-                    mat4.rotateZ(modelMat, modelMat, transformComponent.rotation.z);
-                    mat4.scale(modelMat, modelMat, vec3.fromValues(transformComponent.scale.x, transformComponent.scale.y, transformComponent.scale.z));
+                    mat4.translate(modelMat, modelMat, transformComponent.position);
+                    mat4.rotateX(modelMat, modelMat, transformComponent.rotation[0]);
+                    mat4.rotateY(modelMat, modelMat, transformComponent.rotation[1]);
+                    mat4.rotateZ(modelMat, modelMat, transformComponent.rotation[2]);
+                    mat4.scale(modelMat, modelMat, transformComponent.scale);
                     gl.uniformMatrix4fv(getUniformLocation(shaderID, modelMatName), false, modelMat);
                 } else {
                     gl.uniformMatrix4fv(getUniformLocation(shaderID, modelMatName), false, mat4.create());
@@ -181,5 +181,20 @@ export const inputSystem: System = {
         if (isKeyPressed('ArrowRight')) {
             rotateVec3(cameraUp, cameraFront, -cameraRotationSpeed); // Roll right
         }
+    }
+};
+
+export const rotationSystem: System = {
+    update: (entities: EntityID[], deltaTime: number): void => {
+        entities.forEach(entity => {
+            if (entityHasComponent(entity, ComponentType.Transform) && entityHasComponent(entity, ComponentType.Rotation)) {
+                const transformComponent: TransformComponent = entityGetComponent(entity, ComponentType.Transform) as TransformComponent;
+                const rotationComponent: RotationComponent = entityGetComponent(entity, ComponentType.Rotation) as RotationComponent;
+
+                transformComponent.rotation[1] += rotationComponent.speed * deltaTime;
+
+                transformComponent.rotation[1] %= 360;
+            }
+        });
     }
 };

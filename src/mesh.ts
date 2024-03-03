@@ -6,7 +6,7 @@ export type Mesh = {
     colors?: Float32Array,
 }
 
-export const createSphere = (radius: number, latSegments: number, lonSegments: number): Mesh => {
+export const createSphere = (radius: number, latSegments: number = 30, lonSegments: number = 30): Mesh => {
     const vertices: number[] = [];
     const normals: number[] = [];
     const texCoords: number[] = [];
@@ -42,6 +42,42 @@ export const createSphere = (radius: number, latSegments: number, lonSegments: n
             indices.push(first, second, first + 1);
             indices.push(second, second + 1, first + 1);
         }
+    }
+
+    return {
+        vertices: new Float32Array(vertices),
+        normals: new Float32Array(normals),
+        texCoords: new Float32Array(texCoords),
+        indices: new Uint16Array(indices),
+    };
+};
+
+export const createRing = (innerRadius: number, outerRadius: number, segments: number = 60): Mesh => {
+    const vertices: number[] = [];
+    const normals: number[] = [];
+    const texCoords: number[] = [];
+    const indices: number[] = [];
+
+    for (let i = 0; i <= segments; i++) {
+        const theta = i * 2 * Math.PI / segments;
+        const sinTheta = Math.sin(theta);
+        const cosTheta = Math.cos(theta);
+
+        // outer ring
+        vertices.push(outerRadius * cosTheta, 0, outerRadius * sinTheta);
+        normals.push(0, 1, 0);
+        texCoords.push(1, i / segments);
+
+        // inner ring
+        vertices.push(innerRadius * cosTheta, 0, innerRadius * sinTheta);
+        normals.push(0, 1, 0);
+        texCoords.push(0, i / segments);
+    }
+
+    for (let i = 0; i < segments; i++) {
+        const step = i * 2;
+        indices.push(step, step + 1, step + 3);
+        indices.push(step, step + 3, step + 2);
     }
 
     return {

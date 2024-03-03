@@ -1,10 +1,12 @@
-import { MeshID, TextureID, ShaderID } from "./resourceManager";
+import { vec3 } from 'gl-matrix';
+import { MeshID, TextureID, ShaderID } from './resourceManager';
 
 export enum ComponentType {
     Render = 'Render',
     Transform = 'Transform',
     Light = 'Light',
-}
+    Rotation = 'Rotation',
+};
 
 export type RenderComponent = {
     type: ComponentType.Render,
@@ -12,22 +14,28 @@ export type RenderComponent = {
     textureID: TextureID,
     shaderID: ShaderID,
     vao: WebGLVertexArrayObject | null,
-}
+};
 
 export type TransformComponent = {
     type: ComponentType.Transform,
-    position: { x: number, y: number, z: number },
-    rotation: { x: number, y: number, z: number },
-    scale: { x: number, y: number, z: number },
-}
+    position: vec3,
+    rotation: vec3,
+    scale: vec3,
+};
 
 export type LightComponent = {
     type: ComponentType.Light,
     color: { r: number, g: number, b: number },
     intensity: number,
-}
+};
 
-export type Component = RenderComponent | TransformComponent | LightComponent;
+export type RotationComponent = {
+    type: ComponentType.Rotation,
+    axis: vec3,
+    speed: number,
+};
+
+export type Component = RenderComponent | TransformComponent | LightComponent | RotationComponent;
 
 export const createRenderComponent = (meshID: MeshID, textureID: TextureID, shaderID: ShaderID): RenderComponent => {
     return {
@@ -39,7 +47,7 @@ export const createRenderComponent = (meshID: MeshID, textureID: TextureID, shad
     };
 };
 
-export const createTransformComponent = (position: { x: number, y: number, z: number }, rotation: { x: number, y: number, z: number }, scale: { x: number, y: number, z: number }): TransformComponent => {
+export const createTransformComponent = (position: vec3, rotation: vec3, scale: vec3): TransformComponent => {
     return {
         type: ComponentType.Transform,
         position,
@@ -53,5 +61,13 @@ export const createLightComponent = (color: { r: number, g: number, b: number },
         type: ComponentType.Light,
         color,
         intensity,
+    };
+};
+
+export const createRotationComponent = (axis: vec3, speed: number): RotationComponent => {
+    return {
+        type: ComponentType.Rotation,
+        axis,
+        speed,
     };
 };

@@ -18,7 +18,7 @@ export const addMesh = (mesh: Mesh): MeshID => {
     return meshCache.length - 1;
 }
 
-export const addTexture = async (gl: WebGL2RenderingContext, url: string): Promise<TextureID> => {
+export const addTexture = async (gl: WebGL2RenderingContext, url: string, texParam: number = gl.CLAMP_TO_EDGE): Promise<TextureID> => {
     const IsPowerOf2 = (value: number): boolean => (value & (value - 1)) == 0;
 
     const texture = gl.createTexture();
@@ -41,8 +41,8 @@ export const addTexture = async (gl: WebGL2RenderingContext, url: string): Promi
         if (IsPowerOf2(image.width) && IsPowerOf2(image.height)) {
             gl.generateMipmap(gl.TEXTURE_2D);
         } else {
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParam);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texParam);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         }
     };
