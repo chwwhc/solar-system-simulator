@@ -23,19 +23,13 @@ export type TransformComponent = {
     scale: vec3,
 };
 
-export type LightComponent = {
-    type: ComponentType.Light,
-    color: { r: number, g: number, b: number },
-    intensity: number,
-};
-
 export type RotationComponent = {
     type: ComponentType.Rotation,
     axis: vec3,
     speed: number,
 };
 
-export type Component = RenderComponent | TransformComponent | LightComponent | RotationComponent;
+export type Component = RenderComponent | TransformComponent | RotationComponent;
 
 export const createRenderComponent = (meshID: MeshID, textureID: TextureID, shaderID: ShaderID): RenderComponent => {
     return {
@@ -53,14 +47,6 @@ export const createTransformComponent = (position: vec3, rotation: vec3, scale: 
         position,
         rotation,
         scale,
-    };
-};
-
-export const createLightComponent = (color: { r: number, g: number, b: number }, intensity: number): LightComponent => {
-    return {
-        type: ComponentType.Light,
-        color,
-        intensity,
     };
 };
 

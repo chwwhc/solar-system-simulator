@@ -8,6 +8,8 @@ export const modelMatName: string = 'uModelMat';
 export const viewMatName: string = 'uViewMat';
 export const projMatName: string = 'uProjMat';
 export const textureName: string = 'uTexture';
+export const sunColorName: string = 'uSunColor';
+export const sunPositionName: string = 'uSunPosition';
 
 export type ShaderID = number;
 export type TextureID = number;
@@ -52,7 +54,13 @@ export const addTexture = async (gl: WebGL2RenderingContext, url: string, texPar
     return textureCache.length - 1;
 }
 
-export const addShader = (gl: WebGL2RenderingContext, vertexShaderSource: string, fragmentShaderSource: string): ShaderID => {
+export const addShader = async (gl: WebGL2RenderingContext, vertexShaderUrl: string, fragmentShaderUrl: string): Promise<ShaderID> => {
+    const vertexShaderSource: string = await (await fetch(vertexShaderUrl)).text();
+    const fragmentShaderSource: string = await (await fetch(fragmentShaderUrl)).text();
+    if (vertexShaderSource === null || fragmentShaderSource === null) {
+        throw new Error('Unable to fetch shader source');
+    }
+
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
     if (vertexShader === null) {
         throw new Error('Unable to create vertex shader');
@@ -93,6 +101,8 @@ export const addShader = (gl: WebGL2RenderingContext, vertexShaderSource: string
     uniformCache[viewMatName] = gl.getUniformLocation(shaderProgram, viewMatName);
     uniformCache[projMatName] = gl.getUniformLocation(shaderProgram, projMatName);
     uniformCache[textureName] = gl.getUniformLocation(shaderProgram, textureName);
+    uniformCache[sunColorName] = gl.getUniformLocation(shaderProgram, sunColorName);
+    uniformCache[sunPositionName] = gl.getUniformLocation(shaderProgram, sunPositionName);
 
     shaderCache.push([shaderProgram, uniformCache]);
     return shaderCache.length - 1;

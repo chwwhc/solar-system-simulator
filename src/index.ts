@@ -4,7 +4,7 @@ import { createRing, createSphere } from './mesh';
 import { EntityID, createEntity } from './entity';
 import { createRenderComponent, createRotationComponent, createTransformComponent } from './component';
 import { inputSystem, renderSystem, rotationSystem } from './systems';
-import { Planet, Ring, planetRadius, planetRotationSpeed, planetTextureUrl, planetTranslation, ringRadius, ringRotationSpeed, ringTextureUrl, ringTranslation } from './planetConstants';
+import { Star, Planet, Ring, planetRadius, planetRotationSpeed, planetTextureUrl, planetTranslation, ringRadius, ringRotationSpeed, ringTextureUrl, ringTranslation, starTextureUrl, starRadius, starTranslation } from './constants';
 import { vec3 } from 'gl-matrix';
 
 const canvasID: string = 'webglCanvas';
@@ -65,20 +65,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // setup entities
     const entities: EntityID[] = [];
 
-    // compile shaders
-    const planetVertexShaderSource: string = await (await fetch('assets/shaders/planetShader.vert')).text();
-    const planetFragmentShaderSource: string = await (await fetch('assets/shaders/planetShader.frag')).text();
-    if (planetVertexShaderSource === null || planetFragmentShaderSource === null) {
-        throw new Error('Unable to fetch shader source');
-    }
-    const planetShaderID: ShaderID = addShader(gl, planetVertexShaderSource, planetFragmentShaderSource);
-    const ringVertexShaderSource: string = await (await fetch('assets/shaders/ringShader.vert')).text();
-    const ringFragmentShaderSource: string = await (await fetch('assets/shaders/ringShader.frag')).text();
-    if (ringVertexShaderSource === null || ringFragmentShaderSource === null) {
-        throw new Error('Unable to fetch shader source');
-    }
-    const ringShaderID: ShaderID = addShader(gl, ringVertexShaderSource, ringFragmentShaderSource);
-
+    // prepare shaders
+    const planetShaderID: ShaderID = await addShader(gl, 'assets/shaders/planetShader.vert', 'assets/shaders/planetShader.frag');
+    const ringShaderID: ShaderID = await addShader(gl, 'assets/shaders/ringShader.vert', 'assets/shaders/ringShader.frag');
+    const starShaderID: ShaderID = await addShader(gl, 'assets/shaders/starShader.vert', 'assets/shaders/starShader.frag');
 
     Object.keys(Planet).forEach(async (key) => {
         const planet: Planet = key as Planet;
@@ -110,6 +100,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             createRotationComponent(vec3.fromValues(0, 1, 0), ringRotationSpeed.get(ring))
         ]);
         entities.push(ringEntity);
+    });
+
+    Object.keys(Star).forEach(async (key) => {
+        const star: Star = key as Star;
+
+        // load textures
+        const textureID: TextureID = await addTexture(gl, starTextureUrl.get(star) as string);
+        // construct planet mesh
+        const starMeshID: MeshID = addMesh(createSphere(starRadius.get(star)));
+        // create planet entity
+        const starEntity: EntityID = createEntity([
+            createRenderComponent(starMeshID, textureID, starShaderID),
+            createTransformComponent(starTranslation.get(star), vec3.create(), vec3.fromValues(1, 1, 1)),
+            createRotationComponent(vec3.fromValues(0, 1, 0), 0.1)
+        ]);
+        entities.push(starEntity);
     });
 
     // setup systems

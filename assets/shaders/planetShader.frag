@@ -2,13 +2,20 @@
 precision mediump float;
 
 uniform sampler2D uTexture;
+uniform vec3 uSunColor;
+uniform vec3 uSunPosition;
 
-in highp vec3 vLighting;
-in highp vec2 vTexCoord;
+in vec3 vNormal;
+in vec3 vFragPos;
+in vec2 vTexCoord;
 
 out vec4 fragColor;
 
 void main() {
+    vec3 normal = normalize(vNormal);
+    vec3 sunDir = normalize(uSunPosition - vFragPos);
+    float diffuse = max(dot(normal, sunDir), 0.0f);
     vec4 texel = texture(uTexture, vTexCoord);
-    fragColor = vec4(texel.rgb * vLighting, texel.a);
+    vec3 color = texel.rgb * uSunColor * diffuse;
+    fragColor = vec4(color, texel.a);
 }

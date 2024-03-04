@@ -2,7 +2,7 @@ import { EntityID, entityGetComponent, entityHasComponent } from './entity';
 import { ComponentType, RenderComponent, TransformComponent, RotationComponent } from './component';
 import { getViewMatrix, getProjectionMatrix, getCameraFront, getCameraUp, getCameraPosition } from './camera';
 import { mat4, vec3, quat } from 'gl-matrix';
-import { getMesh, getShader, modelMatName, viewMatName, projMatName, getTexture, textureName, getUniformLocation, ShaderID } from './resourceManager';
+import { getMesh, getShader, modelMatName, viewMatName, projMatName, getTexture, textureName, getUniformLocation, ShaderID, sunColorName, sunPositionName } from './resourceManager';
 
 // listener for input system
 const currentKeys: Set<string> = new Set();
@@ -79,6 +79,8 @@ export const renderSystem: System = {
 
         const viewMat: mat4 = getViewMatrix();
         const projMat: mat4 = getProjectionMatrix();
+        const sunColor: vec3 = new Float32Array([1.0, 1.0, 1.0]);
+        const sunPosition: vec3 = new Float32Array([0.0, 0.0, 0.0]);
 
         entities.forEach((entity) => {
             if (entityHasComponent(entity, ComponentType.Render)) {
@@ -105,6 +107,9 @@ export const renderSystem: System = {
                     gl.uniformMatrix4fv(getUniformLocation(shaderID, modelMatName), false, mat4.create());
                 }
 
+                gl.uniform3fv(getUniformLocation(shaderID, sunColorName), sunColor);
+                gl.uniform3fv(getUniformLocation(shaderID, sunPositionName), sunPosition);
+
                 gl.uniformMatrix4fv(getUniformLocation(shaderID, viewMatName), false, viewMat);
                 gl.uniformMatrix4fv(getUniformLocation(shaderID, projMatName), false, projMat);
 
@@ -125,7 +130,7 @@ export const renderSystem: System = {
 
 export const inputSystem: System = {
     update: (entities: EntityID[], deltaTime: number, gl: WebGL2RenderingContext): void => {
-        const cameraSpeed: number = 0.01 * deltaTime;
+        const cameraSpeed: number = 0.5 * deltaTime;
         const cameraRotationSpeed: number = 0.001 * deltaTime;
         const cameraPos: vec3 = getCameraPosition();
         const cameraFront: vec3 = getCameraFront();

@@ -1,8 +1,8 @@
 import { vec3 } from 'gl-matrix';
 
-const RADIUS_UNIT: number = 1.2;
-const TRANSLATION_UNIT: number = 10;
-const ROTATION_UNIT: number = 0.005;
+const RADIUS_UNIT: number = 1;
+const TRANSLATION_UNIT: number = 100;
+const ROTATION_UNIT: number = 0.001;
 
 export enum Planet {
     Mercury = 'Mercury',
@@ -20,6 +20,10 @@ export enum Ring {
     Uranus = 'Uranus',
 };
 
+export enum Star {
+    Sun = 'Sun',
+};
+
 export const planetRadius: Map<Planet, number> = new Map([
     [Planet.Mercury, 0.38 * RADIUS_UNIT],
     [Planet.Venus, 0.95 * RADIUS_UNIT],
@@ -31,8 +35,11 @@ export const planetRadius: Map<Planet, number> = new Map([
     [Planet.Neptune, 3.88 * RADIUS_UNIT],
 ]);
 export const ringRadius: Map<Ring, [number, number]> = new Map([
-    [Ring.Saturn, [10 * RADIUS_UNIT, 11.8 * RADIUS_UNIT]],
-    [Ring.Uranus, [4.65 * RADIUS_UNIT, 5.45 * RADIUS_UNIT]],
+    [Ring.Saturn, [10 * RADIUS_UNIT, 15 * RADIUS_UNIT]],
+    [Ring.Uranus, [4.65 * RADIUS_UNIT, 6.45 * RADIUS_UNIT]],
+]);
+export const starRadius: Map<Star, number> = new Map([
+    [Star.Sun, 109.2 * RADIUS_UNIT],
 ]);
 
 export const planetTextureUrl: Map<Planet, string> = new Map([
@@ -49,6 +56,9 @@ export const ringTextureUrl: Map<Ring, string> = new Map([
     [Ring.Saturn, 'assets/textures/saturnRing.jpg'],
     [Ring.Uranus, 'assets/textures/uranusRing.jpg'],
 ]);
+export const starTextureUrl: Map<Star, string> = new Map([
+    [Star.Sun, 'assets/textures/sun.jpg'],
+]);
 
 export const planetTranslation: Map<Planet, vec3> = new Map([
     [Planet.Mercury, vec3.fromValues(0.387 * TRANSLATION_UNIT, 0, 0)],
@@ -64,6 +74,9 @@ export const ringTranslation: Map<Ring, vec3> = new Map([
     [Ring.Saturn, vec3.fromValues(9.537 * TRANSLATION_UNIT, 0, 0)],
     [Ring.Uranus, vec3.fromValues(19.191 * TRANSLATION_UNIT, 0, 0)],
 ]);
+export const starTranslation: Map<Star, vec3> = new Map([
+    [Star.Sun, vec3.fromValues(0, 0, 0)],
+]);
 
 export const planetRotationSpeed: Map<Planet, number> = new Map([
     [Planet.Mercury, 0.241 * ROTATION_UNIT],
@@ -78,4 +91,7 @@ export const planetRotationSpeed: Map<Planet, number> = new Map([
 export const ringRotationSpeed: Map<Ring, number> = new Map([
     [Ring.Saturn, 0.445 * ROTATION_UNIT],
     [Ring.Uranus, 0.72 * ROTATION_UNIT],
+]);
+export const starRotationSpeed: Map<Star, number> = new Map([
+    [Star.Sun, 24.47 * ROTATION_UNIT],
 ]);
