@@ -33,7 +33,7 @@ export const addTexture = async (gl: WebGL2RenderingContext, url: string, texPar
     const border = 0;
     const srcFormat = gl.RGBA;
     const srcType = gl.UNSIGNED_BYTE;
-    const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+    const pixel = new Uint8Array([255, 255, 255, 255]);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
 
     const image = new Image();
@@ -45,7 +45,8 @@ export const addTexture = async (gl: WebGL2RenderingContext, url: string, texPar
         } else {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParam);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texParam);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         }
     };
     image.src = url;

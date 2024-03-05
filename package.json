@@ -19,6 +19,8 @@
     "webpack-dev-server": "^5.0.2"
   },
   "dependencies": {
+    "@types/dat.gui": "^0.7.12",
+    "dat.gui": "^0.7.9",
     "gl-matrix": "^3.4.3"
   }
 }

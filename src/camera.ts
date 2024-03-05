@@ -8,7 +8,7 @@ const cameraState = {
     fov: Math.PI / 3,
     aspect: window.innerWidth / window.innerHeight,
     near: 0.1,
-    far: 10000,
+    far: 100000,
 };
 
 export const updateCameraFOV = (fov: number): void => {

@@ -1,20 +1,45 @@
 import { EntityID, entityGetComponent, entityHasComponent } from './entity';
 import { ComponentType, RenderComponent, TransformComponent, RotationComponent } from './component';
 import { getViewMatrix, getProjectionMatrix, getCameraFront, getCameraUp, getCameraPosition } from './camera';
-import { mat4, vec3, quat } from 'gl-matrix';
+import { mat4, vec3, glMatrix } from 'gl-matrix';
 import { getMesh, getShader, modelMatName, viewMatName, projMatName, getTexture, textureName, getUniformLocation, ShaderID, sunColorName, sunPositionName } from './resourceManager';
 
 // listener for input system
 const currentKeys: Set<string> = new Set();
+const mouseContext = {
+    isMouseMoving: false,
+    lastMouseX: 0,
+    lastMouseY: 0,
+    mouseDeltaX: 0,
+    mouseDeltaY: 0,
+    yaw: 90,
+    pitch: 0,
+};
+const isKeyPressed = (key: string): boolean => {
+    return currentKeys.has(key);
+};
 window.addEventListener('keydown', (event: KeyboardEvent) => {
     currentKeys.add(event.key);
 });
 window.addEventListener('keyup', (event: KeyboardEvent) => {
     currentKeys.delete(event.key);
 });
-const isKeyPressed = (key: string): boolean => {
-    return currentKeys.has(key);
-};
+window.addEventListener('mousemove', (event) => {
+    if (mouseContext.isMouseMoving) {
+        mouseContext.mouseDeltaX += event.clientX - mouseContext.lastMouseX;
+        mouseContext.mouseDeltaY += event.clientY - mouseContext.lastMouseY;
+    }
+    mouseContext.lastMouseX = event.clientX;
+    mouseContext.lastMouseY = event.clientY;
+});
+window.addEventListener('mousedown', () => {
+    mouseContext.isMouseMoving = true;
+});
+window.addEventListener('mouseup', () => {
+    mouseContext.isMouseMoving = false;
+    mouseContext.mouseDeltaX = 0;
+    mouseContext.mouseDeltaY = 0;
+});
 
 export interface System {
     update: (entites: EntityID[], deltaTime: number, gl?: WebGL2RenderingContext) => void
@@ -130,61 +155,46 @@ export const renderSystem: System = {
 
 export const inputSystem: System = {
     update: (entities: EntityID[], deltaTime: number, gl: WebGL2RenderingContext): void => {
-        const cameraSpeed: number = 0.5 * deltaTime;
-        const cameraRotationSpeed: number = 0.001 * deltaTime;
+        const cameraSpeed: number = 10 * deltaTime;
+        const mouseSensitivity: number = 0.0005 * deltaTime;
         const cameraPos: vec3 = getCameraPosition();
         const cameraFront: vec3 = getCameraFront();
         const cameraUp: vec3 = getCameraUp();
 
-        vec3.normalize(cameraFront, cameraFront);
-        vec3.normalize(cameraUp, cameraUp);
-
-        const rotateVec3 = (vec: vec3, axis: vec3, angle: number): void => {
-            const quaternion: quat = quat.create();
-            quat.setAxisAngle(quaternion, axis, angle);
-            const rotatedVec: vec3 = vec3.create();
-            vec3.transformQuat(rotatedVec, vec, quaternion);
-            vec3.copy(vec, rotatedVec);
-        }
-
-        // Movement (Zoom In/Out)
+        // Movement (forward/backward)
         if (isKeyPressed('w')) {
-            vec3.scaleAndAdd(cameraPos, cameraPos, cameraFront, cameraSpeed); // Zoom in
+            vec3.scaleAndAdd(cameraPos, cameraPos, cameraFront, cameraSpeed);
         }
         if (isKeyPressed('s')) {
-            vec3.scaleAndAdd(cameraPos, cameraPos, cameraFront, -cameraSpeed); // Zoom out
+            vec3.scaleAndAdd(cameraPos, cameraPos, cameraFront, -cameraSpeed);
         }
 
-        // Yaw (A/D)
+        // Movement (left/right)
         if (isKeyPressed('a')) {
-            rotateVec3(cameraFront, cameraUp, cameraRotationSpeed); // Yaw left
+            const right: vec3 = vec3.create();
+            vec3.cross(right, cameraFront, cameraUp);
+            vec3.normalize(right, right);
+            vec3.scaleAndAdd(cameraPos, cameraPos, right, -cameraSpeed);
         }
         if (isKeyPressed('d')) {
-            rotateVec3(cameraFront, cameraUp, -cameraRotationSpeed); // Yaw right
-        }
-
-        // Pitch (Arrow Up/Down)
-        if (isKeyPressed('ArrowUp')) {
-            let right = vec3.create();
+            const right: vec3 = vec3.create();
             vec3.cross(right, cameraFront, cameraUp);
             vec3.normalize(right, right);
-            rotateVec3(cameraFront, right, cameraRotationSpeed); // Pitch up
-            rotateVec3(cameraUp, right, cameraRotationSpeed);
-        }
-        if (isKeyPressed('ArrowDown')) {
-            let right = vec3.create();
-            vec3.cross(right, cameraFront, cameraUp);
-            vec3.normalize(right, right);
-            rotateVec3(cameraFront, right, -cameraRotationSpeed); // Pitch down
-            rotateVec3(cameraUp, right, -cameraRotationSpeed);
+            vec3.scaleAndAdd(cameraPos, cameraPos, right, cameraSpeed);
         }
 
-        // Roll (Arrow Left/Right)
-        if (isKeyPressed('ArrowLeft')) {
-            rotateVec3(cameraUp, cameraFront, cameraRotationSpeed); // Roll left
-        }
-        if (isKeyPressed('ArrowRight')) {
-            rotateVec3(cameraUp, cameraFront, -cameraRotationSpeed); // Roll right
+        if (mouseContext.isMouseMoving) {
+            const xOffset: number = mouseContext.mouseDeltaX * mouseSensitivity;
+            const yOffset: number = mouseContext.mouseDeltaY * mouseSensitivity;
+
+            mouseContext.yaw -= xOffset;
+            mouseContext.pitch += yOffset;
+
+            // Calculate new front vector
+            cameraFront[0] = Math.cos(glMatrix.toRadian(mouseContext.yaw)) * Math.cos(glMatrix.toRadian(mouseContext.pitch));
+            cameraFront[1] = Math.sin(glMatrix.toRadian(mouseContext.pitch));
+            cameraFront[2] = Math.sin(glMatrix.toRadian(mouseContext.yaw)) * Math.cos(glMatrix.toRadian(mouseContext.pitch));
+            vec3.normalize(cameraFront, cameraFront);
         }
     }
 };

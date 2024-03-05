@@ -4,8 +4,9 @@ import { createRing, createSphere } from './mesh';
 import { EntityID, createEntity } from './entity';
 import { createRenderComponent, createRotationComponent, createTransformComponent } from './component';
 import { inputSystem, renderSystem, rotationSystem } from './systems';
-import { Star, Planet, Ring, planetRadius, planetRotationSpeed, planetTextureUrl, planetTranslation, ringRadius, ringRotationSpeed, ringTextureUrl, ringTranslation, starTextureUrl, starRadius, starTranslation } from './constants';
+import { Star, Planet, Ring, planetRadius, planetRotationSpeed, planetTextureUrl, planetTranslation, ringRadius, ringRotationSpeed, ringTextureUrl, ringTranslation, starTextureUrl, starRadius, starTranslation, starRotationSpeed } from './constants';
 import { vec3 } from 'gl-matrix';
+import { gui } from './gui';
 
 const canvasID: string = 'webglCanvas';
 const canvas: HTMLCanvasElement | null = document.getElementById(canvasID) as HTMLCanvasElement;
@@ -108,12 +109,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // load textures
         const textureID: TextureID = await addTexture(gl, starTextureUrl.get(star) as string);
         // construct planet mesh
-        const starMeshID: MeshID = addMesh(createSphere(starRadius.get(star)));
+        const starMeshID: MeshID = addMesh(createSphere(starRadius.get(star), 50, 50));
         // create planet entity
         const starEntity: EntityID = createEntity([
             createRenderComponent(starMeshID, textureID, starShaderID),
             createTransformComponent(starTranslation.get(star), vec3.create(), vec3.fromValues(1, 1, 1)),
-            createRotationComponent(vec3.fromValues(0, 1, 0), 0.1)
+            createRotationComponent(vec3.fromValues(0, 1, 0), starRotationSpeed.get(star))
         ]);
         entities.push(starEntity);
     });

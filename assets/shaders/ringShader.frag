@@ -16,6 +16,7 @@ void main() {
     vec3 sunDir = normalize(uSunPosition - vFragPos);
     float diffuse = max(dot(normal, sunDir), 0.0f);
     vec4 texel = texture(uTexture, vTexCoord);
-    vec3 color = texel.rgb * uSunColor * diffuse;
+    vec3 ambient = 0.1f * texel.rgb;
+    vec3 color = texel.rgb * uSunColor * diffuse + ambient;
     fragColor = vec4(color, texel.a);
 }

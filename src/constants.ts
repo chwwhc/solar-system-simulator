@@ -1,7 +1,7 @@
 import { vec3 } from 'gl-matrix';
 
 const RADIUS_UNIT: number = 1;
-const TRANSLATION_UNIT: number = 100;
+const DISTANCE_SCALE: number = 2000;
 const ROTATION_UNIT: number = 0.001;
 
 export enum Planet {
@@ -61,18 +61,18 @@ export const starTextureUrl: Map<Star, string> = new Map([
 ]);
 
 export const planetTranslation: Map<Planet, vec3> = new Map([
-    [Planet.Mercury, vec3.fromValues(0.387 * TRANSLATION_UNIT, 0, 0)],
-    [Planet.Venus, vec3.fromValues(0.723 * TRANSLATION_UNIT, 0, 0)],
-    [Planet.Earth, vec3.fromValues(1 * TRANSLATION_UNIT, 0, 0)],
-    [Planet.Mars, vec3.fromValues(1.524 * TRANSLATION_UNIT, 0, 0)],
-    [Planet.Jupiter, vec3.fromValues(5.203 * TRANSLATION_UNIT, 0, 0)],
-    [Planet.Saturn, vec3.fromValues(9.537 * TRANSLATION_UNIT, 0, 0)],
-    [Planet.Uranus, vec3.fromValues(19.191 * TRANSLATION_UNIT, 0, 0)],
-    [Planet.Neptune, vec3.fromValues(30.069 * TRANSLATION_UNIT, 0, 0)],
+    [Planet.Mercury, vec3.fromValues(0.387 * DISTANCE_SCALE, 0, 0)],
+    [Planet.Venus, vec3.fromValues(0.723 * DISTANCE_SCALE, 0, 0)],
+    [Planet.Earth, vec3.fromValues(1 * DISTANCE_SCALE, 0, 0)],
+    [Planet.Mars, vec3.fromValues(1.524 * DISTANCE_SCALE, 0, 0)],
+    [Planet.Jupiter, vec3.fromValues(5.203 * DISTANCE_SCALE, 0, 0)],
+    [Planet.Saturn, vec3.fromValues(9.537 * DISTANCE_SCALE, 0, 0)],
+    [Planet.Uranus, vec3.fromValues(19.191 * DISTANCE_SCALE, 0, 0)],
+    [Planet.Neptune, vec3.fromValues(30.069 * DISTANCE_SCALE, 0, 0)],
 ]);
 export const ringTranslation: Map<Ring, vec3> = new Map([
-    [Ring.Saturn, vec3.fromValues(9.537 * TRANSLATION_UNIT, 0, 0)],
-    [Ring.Uranus, vec3.fromValues(19.191 * TRANSLATION_UNIT, 0, 0)],
+    [Ring.Saturn, vec3.fromValues(9.537 * DISTANCE_SCALE, 0, 0)],
+    [Ring.Uranus, vec3.fromValues(19.191 * DISTANCE_SCALE, 0, 0)],
 ]);
 export const starTranslation: Map<Star, vec3> = new Map([
     [Star.Sun, vec3.fromValues(0, 0, 0)],
